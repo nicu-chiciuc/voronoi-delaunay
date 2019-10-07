@@ -1,9 +1,9 @@
 console.log("fuck");
 
-type Point = { x: number; y: number };
-type Line = [Point, Point];
+type Point = { x: number; y: number; id: string };
+type Line = { p1: Point; p2: Point; id: string };
 
-type Triangle = [Point, Point, Point];
+type Triangle = { p1: Point; p2: Point; p3: Point; id: string };
 
 window.onload = event => {
   const canvas = document.getElementById("canvas");
@@ -13,48 +13,75 @@ window.onload = event => {
   canvas.onclick = event => {
     const p: Point = {
       x: event.offsetX,
-      y: event.offsetY
+      y: event.offsetY,
+      id: guid()
     };
 
-    drawPoint(ctx, p);
+    addPointToDelaunay(p);
   };
 
-  const points: Point[] = [
-    { x: 372, y: 206 },
-    { x: 528, y: 348 },
-    { x: 615, y: 452 },
-    { x: 128, y: 536 },
-    { x: 242, y: 396 },
-    { x: 326, y: 510 },
-    { x: 513, y: 544 },
-    { x: 459, y: 428 },
-    { x: 326, y: 379 },
-    { x: 488, y: 244 }
-  ];
+  const points: Point[] = [];
 
   points.forEach(point => {
     drawPoint(ctx, point);
   });
 
-  const superTriangle: Triangle = [
-    { x: 400, y: 5 },
-    { x: 5, y: 595 },
-    { x: 790, y: 595 }
-  ];
+  const superTriangle: Triangle = {
+    p1: { x: 400, y: 5, id: guid() },
+    p2: { x: 5, y: 595, id: guid() },
+    p3: { x: 790, y: 595, id: guid() },
+    id: guid()
+  };
+
+  const triangles: Triangle[] = [superTriangle];
 
   drawTri(ctx, superTriangle);
 
-  console.log(canvas);
+  // points.forEach(addPointToDelaunay);
+
+  function addPointToDelaunay(point: Point) {
+    points.push(point);
+    // Find in what triangle it is now
+    const triIndex = triangles.findIndex(tri => {
+      return pointInsideTriangle(tri, point);
+    });
+
+    if (triIndex === -1) throw "Fuck";
+
+    const tri = triangles[triIndex];
+
+    const tri3: Triangle[] = [
+      { p1: tri.p1, p2: tri.p2, p3: point, id: guid() },
+      { p1: tri.p2, p2: tri.p3, p3: point, id: guid() },
+      { p1: tri.p3, p2: tri.p1, p3: point, id: guid() }
+    ];
+
+    triangles.splice(triIndex, 1, ...tri3);
+
+    redrawAll();
+  }
+
+  function redrawAll() {
+    ctx.clearRect(0, 0, 800, 600);
+
+    points.forEach(point => {
+      drawPoint(ctx, point);
+    });
+
+    triangles.forEach(tri => {
+      drawTri(ctx, tri);
+    });
+  }
 };
 
 const sign = (p1: Point, p2: Point, p3: Point) => {
   return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
 };
 
-const pointInsideTriangle = ([t1, t2, t3]: Triangle, p: Point) => {
-  const d1 = sign(t1, t2, p);
-  const d2 = sign(t2, t3, p);
-  const d3 = sign(t3, t1, p);
+const pointInsideTriangle = ({ p1, p2, p3 }: Triangle, p: Point) => {
+  const d1 = sign(p1, p2, p);
+  const d2 = sign(p2, p3, p);
+  const d3 = sign(p3, p1, p);
 
   const allPositive = d1 >= 0 && d2 >= 0 && d3 >= 0;
   const allNegative = d1 <= 0 && d2 <= 0 && d3 <= 0;
@@ -68,15 +95,23 @@ const drawPoint = (ctx: CanvasRenderingContext2D, { x, y }: Point) => {
   ctx.fill();
 };
 
-const drawLine = (ctx: CanvasRenderingContext2D, [p1, p2]: Line) => {
+const drawLine = (ctx: CanvasRenderingContext2D, { p1, p2 }: Line) => {
   ctx.beginPath();
   ctx.moveTo(p1.x, p1.y);
   ctx.lineTo(p2.x, p2.y);
   ctx.stroke();
 };
 
-const drawTri = (ctx: CanvasRenderingContext2D, [p1, p2, p3]: Triangle) => {
-  drawLine(ctx, [p1, p2]);
-  drawLine(ctx, [p2, p3]);
-  drawLine(ctx, [p3, p1]);
+const drawTri = (ctx: CanvasRenderingContext2D, { p1, p2, p3 }: Triangle) => {
+  drawLine(ctx, { p1: p1, p2: p2, id: guid() });
+  drawLine(ctx, { p1: p2, p2: p3, id: guid() });
+  drawLine(ctx, { p1: p3, p2: p1, id: guid() });
 };
+
+function guid() {
+  var S4 = function() {
+    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+  };
+
+  return S4() + "-" + S4();
+}
