@@ -3,7 +3,9 @@ import {
   triangleCircumcircle,
   Triangle,
   Point,
-  pointInsideTriangle
+  pointInsideTriangle,
+  pointInsideCircle,
+  sign
 } from "./geom";
 import { guid } from "./utils";
 
@@ -38,6 +40,7 @@ window.onload = event => {
   };
 
   const triangles: Triangle[] = [superTriangle];
+  window.triangles = triangles;
 
   redrawAll();
 
@@ -45,6 +48,7 @@ window.onload = event => {
 
   function addPointToDelaunay(point: Point) {
     points.push(point);
+
     // Find in what triangle it is now
     const triIndex = triangles.findIndex(tri => {
       return pointInsideTriangle(tri, point);
@@ -62,6 +66,55 @@ window.onload = event => {
 
     triangles.splice(triIndex, 1, ...tri3);
 
+    tri3.forEach(tri => {
+      // Find triangle with edge oposed to current point
+      const { p1, p2 } = tri;
+
+      const ind = triangles.findIndex(t => {
+        return (
+          t.id !== tri.id &&
+          [t.p1.id, t.p2.id, t.p3.id].includes(p1.id) &&
+          [t.p1.id, t.p2.id, t.p3.id].includes(p2.id)
+        );
+      });
+
+      if (ind !== -1) {
+        const triOther = triangles[ind];
+        const otherPoint = [triOther.p1, triOther.p2, triOther.p3].filter(
+          p => ![p1.id, p2.id].includes(p.id)
+        )[0];
+
+        const c = triangleCircumcircle(tri);
+
+
+        // WARN: This operation should be recursiv
+        if (pointInsideCircle(c, otherPoint)) {
+          const flippedTriangles: Triangle[] = [
+            // WARN: the triangles are not clockwise
+            { p1: p1, p2: point, p3: otherPoint, id: guid() },
+            { p1: p2, p2: point, p3: otherPoint, id: guid() }
+          ].map(tt => {
+            if (sign(tt.p1, tt.p2, tt.p3) > 0) {
+              return { p1: tt.p1, p2: tt.p3, p3: tt.p2, id: tt.id };
+            }
+
+            return tt;
+          });
+
+          // Existing triangle
+          triangles.splice(ind, 1);
+
+          const ii = triangles.findIndex(t => t.id === tri.id);
+          // Just added triangles
+          triangles.splice(ii, 1);
+
+          triangles.push(...flippedTriangles);
+
+
+        }
+      }
+    });
+
     redrawAll();
   }
 
@@ -69,15 +122,13 @@ window.onload = event => {
     ctx.clearRect(0, 0, 800, 600);
 
     points.forEach(point => {
-      drawPoint(ctx, point);
+      // drawPoint(ctx, point);
     });
 
     triangles.forEach(tri => {
       const c = triangleCircumcircle(tri);
 
-      console.log(c);
-
-      drawCircle(ctx, c);
+      // drawCircle(ctx, c);
       drawTri(ctx, tri);
     });
   }

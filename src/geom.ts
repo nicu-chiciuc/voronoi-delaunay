@@ -6,7 +6,7 @@ export type LineFormula = { slope: number; n: number };
 export type Circle = { center: Point; rad: number; id?: string };
 export type Triangle = { p1: Point; p2: Point; p3: Point; id?: string };
 
-const sign = (p1: Point, p2: Point, p3: Point) => {
+export const sign = (p1: Point, p2: Point, p3: Point) => {
   return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
 };
 
@@ -63,4 +63,8 @@ const pointDist = (p1: Point, p2: Point): number => {
 
 const yFunc = (form: LineFormula, x: number): number => {
   return x * form.slope + form.n;
+};
+
+export const pointInsideCircle = (circle: Circle, point: Point): boolean => {
+  return pointDist(circle.center, point) < circle.rad;
 };

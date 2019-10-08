@@ -1,4 +1,4 @@
-import { Triangle, Point, Line } from "./geom";
+import { Triangle, Point, Line, Circle } from "./geom";
 
 export const drawPoint = (ctx: CanvasRenderingContext2D, { x, y }: Point) => {
   ctx.beginPath();
