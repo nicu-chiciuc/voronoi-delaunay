@@ -67,55 +67,60 @@ window.onload = event => {
     triangles.splice(triIndex, 1, ...tri3);
 
     tri3.forEach(tri => {
-      // Find triangle with edge oposed to current point
-      const { p1, p2 } = tri;
-
-      const ind = triangles.findIndex(t => {
-        return (
-          t.id !== tri.id &&
-          [t.p1.id, t.p2.id, t.p3.id].includes(p1.id) &&
-          [t.p1.id, t.p2.id, t.p3.id].includes(p2.id)
-        );
-      });
-
-      if (ind !== -1) {
-        const triOther = triangles[ind];
-        const otherPoint = [triOther.p1, triOther.p2, triOther.p3].filter(
-          p => ![p1.id, p2.id].includes(p.id)
-        )[0];
-
-        const c = triangleCircumcircle(tri);
-
-
-        // WARN: This operation should be recursiv
-        if (pointInsideCircle(c, otherPoint)) {
-          const flippedTriangles: Triangle[] = [
-            // WARN: the triangles are not clockwise
-            { p1: p1, p2: point, p3: otherPoint, id: guid() },
-            { p1: p2, p2: point, p3: otherPoint, id: guid() }
-          ].map(tt => {
-            if (sign(tt.p1, tt.p2, tt.p3) > 0) {
-              return { p1: tt.p1, p2: tt.p3, p3: tt.p2, id: tt.id };
-            }
-
-            return tt;
-          });
-
-          // Existing triangle
-          triangles.splice(ind, 1);
-
-          const ii = triangles.findIndex(t => t.id === tri.id);
-          // Just added triangles
-          triangles.splice(ii, 1);
-
-          triangles.push(...flippedTriangles);
-
-
-        }
-      }
+      checkFlipTriangle(tri, point);
     });
 
     redrawAll();
+  }
+
+  function checkFlipTriangle(tri: Triangle, point: Point) {
+    // Find triangle with edge oposed to current point
+    const { p1, p2 } = tri;
+
+    const ind = triangles.findIndex(t => {
+      return (
+        t.id !== tri.id &&
+        [t.p1.id, t.p2.id, t.p3.id].includes(p1.id) &&
+        [t.p1.id, t.p2.id, t.p3.id].includes(p2.id)
+      );
+    });
+
+    if (ind !== -1) {
+      const triOther = triangles[ind];
+      const otherPoint = [triOther.p1, triOther.p2, triOther.p3].filter(
+        p => ![p1.id, p2.id].includes(p.id)
+      )[0];
+
+      const c = triangleCircumcircle(tri);
+
+      // WARN: This operation should be recursiv
+      if (pointInsideCircle(c, otherPoint)) {
+        const flippedTriangles: Triangle[] = [
+          // WARN: the triangles are not clockwise
+          { p1: p1, p2: point, p3: otherPoint, id: guid() },
+          { p1: p2, p2: point, p3: otherPoint, id: guid() }
+        ].map(tt => {
+          if (sign(tt.p1, tt.p2, tt.p3) > 0) {
+            return { p1: tt.p1, p2: tt.p3, p3: tt.p2, id: tt.id };
+          }
+
+          return tt;
+        });
+
+        // Existing triangle
+        triangles.splice(ind, 1);
+
+        const ii = triangles.findIndex(t => t.id === tri.id);
+        // Just added triangles
+        triangles.splice(ii, 1);
+
+        triangles.push(...flippedTriangles);
+
+        // Recursive other maybe possibilities
+        checkFlipTriangle(flippedTriangles[0], point);
+        checkFlipTriangle(flippedTriangles[1], point);
+      }
+    }
   }
 
   function redrawAll() {
