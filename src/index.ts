@@ -12,8 +12,6 @@ import {
 } from "./geom";
 import { guid } from "./utils";
 
-console.log("fuck");
-
 window.onload = event => {
   const canvas = document.getElementById("canvas");
   if (!canvas || !(canvas instanceof HTMLCanvasElement)) return;
@@ -46,9 +44,20 @@ window.onload = event => {
   };
 
   const triangles: Triangle[] = [superTriangle];
-  window.triangles = triangles;
+  // window.triangles = triangles;
 
   refresh();
+  initialAdd();
+
+  function initialAdd() {
+    const rx = () => Math.random() * 800;
+    const ry = () => Math.random() * 600;
+    const rp = (): Point => ({ x: rx(), y: ry(), id: guid() });
+
+    addPointToDelaunay(rp());
+    addPointToDelaunay(rp());
+    addPointToDelaunay(rp());
+  }
 
   function refresh() {
     checkIfTrianglesAreRightSided();
