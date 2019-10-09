@@ -4,7 +4,14 @@ export type Point = { x: number; y: number; id?: string };
 export type Line = { p1: Point; p2: Point; id?: string };
 export type LineFormula = { slope: number; n: number };
 export type Circle = { center: Point; rad: number; id?: string };
-export type Triangle = { p1: Point; p2: Point; p3: Point; id?: string };
+export type Triangle = {
+  p1: Point;
+  p2: Point;
+  p3: Point;
+  id?: string;
+  circum?: Circle;
+  neighbors?: Triangle[];
+};
 
 export const sign = (p1: Point, p2: Point, p3: Point) => {
   return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
