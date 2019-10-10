@@ -2,7 +2,7 @@ import { Triangle, Point, Line, Circle } from "./geom";
 
 export const drawPoint = (ctx: CanvasRenderingContext2D, { x, y }: Point) => {
   ctx.beginPath();
-  ctx.arc(x, y, 5, 0, Math.PI * 2);
+  ctx.arc(x, y, 1, 0, Math.PI * 2);
   ctx.closePath();
   ctx.fill();
 };

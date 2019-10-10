@@ -4,3 +4,13 @@ export const guid = () => {
 
   return S4() + "-" + S4();
 };
+
+export const timeoutPromise = millis => {
+  return new Promise((resolve, reject) => {
+    try {
+      setTimeout(resolve, millis);
+    } catch (error) {
+      reject();
+    }
+  });
+};
